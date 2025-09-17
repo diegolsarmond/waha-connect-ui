@@ -26,13 +26,19 @@ export const ChatArea = ({
   const [sendingMessage, setSendingMessage] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
+    messagesEndRef.current?.scrollIntoView({ behavior, block: 'end' });
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    if (activeChat) {
+      scrollToBottom('auto');
+    }
+  }, [activeChat?.id]);
 
   const handleSendMessage = async (text: string) => {
     if (!activeChat || !text.trim()) return;
