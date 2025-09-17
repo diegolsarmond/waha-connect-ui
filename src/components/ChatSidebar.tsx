@@ -25,7 +25,7 @@ export const ChatSidebar = ({
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredChats = chats.filter(chat =>
-    chat.name.toLowerCase().includes(searchQuery.toLowerCase())
+    chat.name && chat.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const formatLastMessageTime = (timestamp: number) => {
@@ -36,7 +36,8 @@ export const ChatSidebar = ({
     }
   };
 
-  const getInitials = (name: string) => {
+  const getInitials = (name: string | null | undefined) => {
+    if (!name) return '?';
     return name
       .split(' ')
       .map(word => word[0])
@@ -114,7 +115,7 @@ export const ChatSidebar = ({
               >
                 {/* Avatar */}
                 <Avatar className="w-12 h-12 mr-3 flex-shrink-0">
-                  <AvatarImage src={chat.avatar} alt={chat.name} />
+                  <AvatarImage src={chat.avatar} alt={chat.name || 'Chat'} />
                   <AvatarFallback className="bg-whatsapp-light text-whatsapp-dark font-semibold">
                     {getInitials(chat.name)}
                   </AvatarFallback>
@@ -124,7 +125,7 @@ export const ChatSidebar = ({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
                     <h3 className="font-medium text-sidebar-foreground truncate">
-                      {chat.name}
+                      {chat.name || 'Unknown Chat'}
                     </h3>
                     {chat.lastMessage && (
                       <span className="text-xs text-muted-foreground ml-2 flex-shrink-0">
