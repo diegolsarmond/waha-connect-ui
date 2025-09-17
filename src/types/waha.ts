@@ -6,14 +6,18 @@ export interface WAHAConfig {
 
 export interface ChatOverview {
   id: string;
-  name: string;
+  name: string | null;
   isGroup: boolean;
   avatar?: string;
+  picture?: string; // Adicionando picture que vem da API
   lastMessage?: {
+    id?: string;
     body?: string;
     timestamp: number;
     fromMe: boolean;
     type: string;
+    ack?: number;
+    ackName?: string;
   };
   unreadCount?: number;
   archived?: boolean;

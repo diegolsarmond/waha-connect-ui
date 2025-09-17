@@ -17,16 +17,20 @@ export const useWAHA = () => {
   // Load chats
   const loadChats = useCallback(async () => {
     setLoading(true);
+    setError(null); // Limpar erro anterior
     try {
+      console.log('🔄 Carregando chats...');
       const response = await wahaService.getChatsOverview();
       if (response.error) {
         throw new Error(response.error);
       }
       if (response.data) {
+        console.log('✅ Chats carregados:', response.data.length);
         setChats(response.data);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load chats';
+      console.error('❌ Erro ao carregar chats:', err);
       setError(errorMessage);
       toast({
         title: 'Error',
@@ -116,10 +120,11 @@ export const useWAHA = () => {
     try {
       const response = await wahaService.getSessionStatus();
       if (response.data) {
+        console.log('📡 Status da sessão:', response.data.status);
         setSessionStatus(response.data);
       }
     } catch (err) {
-      console.error('Failed to check session status:', err);
+      console.error('❌ Erro ao verificar status da sessão:', err);
     }
   }, []);
 
@@ -180,7 +185,7 @@ export const useWAHA = () => {
     checkSessionStatus();
     
     // Set up periodic refresh for session status
-    intervalRef.current = setInterval(checkSessionStatus, 10000); // every 10 seconds
+    intervalRef.current = setInterval(checkSessionStatus, 30000); // Reduzido para 30 segundos
     
     return () => {
       if (intervalRef.current) {

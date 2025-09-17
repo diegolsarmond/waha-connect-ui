@@ -55,7 +55,48 @@ class WAHAService {
       offset: offset.toString(),
     });
     
-    return this.makeRequest<ChatOverview[]>(`/api/${this.config.session}/chats/overview?${params}`);
+    const response = await this.makeRequest<any[]>(`/api/${this.config.session}/chats/overview?${params}`);
+    
+    if (response.data) {
+      console.log('📊 Raw chats data:', response.data.length, 'chats');
+      
+      // Filtrar e mapear os chats válidos
+      const validChats = response.data
+        .filter((chat: any) => {
+          // Filtrar chats inválidos como status@broadcast
+          const isValid = chat.id && 
+                         chat.id !== 'status@broadcast' && 
+                         chat.name !== null;
+          if (!isValid) {
+            console.log('🚫 Chat filtrado:', chat.id, chat.name);
+          }
+          return isValid;
+        })
+        .map((chat: any): ChatOverview => {
+          console.log('🔄 Processando chat:', chat.name, chat.id);
+          return {
+            id: chat.id,
+            name: chat.name || 'Unknown Chat',
+            isGroup: chat.id.includes('@g.us'),
+            avatar: chat.picture || chat.avatar,
+            lastMessage: chat.lastMessage ? {
+              id: chat.lastMessage.id,
+              body: chat.lastMessage.body,
+              timestamp: chat.lastMessage.timestamp * 1000, // Converter para milliseconds
+              fromMe: chat.lastMessage.fromMe,
+              type: chat.lastMessage.hasMedia ? 'document' : 'text', // Ajustado para tipo válido
+              ack: chat.lastMessage.ack,
+              ackName: chat.lastMessage.ackName,
+            } : undefined,
+            unreadCount: 0, // WAHA não fornece isso na overview, seria necessário calcular
+          };
+        });
+      
+      console.log('✅ Chats válidos processados:', validChats.length);
+      return { ...response, data: validChats };
+    }
+    
+    return response as WAHAResponse<ChatOverview[]>;
   }
 
   // Get messages from a chat
@@ -73,7 +114,27 @@ class WAHAService {
       downloadMedia: (options.downloadMedia || false).toString(),
     });
     
-    return this.makeRequest<Message[]>(`/api/${this.config.session}/chats/${chatId}/messages?${params}`);
+    const response = await this.makeRequest<any[]>(`/api/${this.config.session}/chats/${chatId}/messages?${params}`);
+    
+    if (response.data) {
+      const messages = response.data.map((msg: any): Message => ({
+        id: msg.id,
+        chatId: chatId,
+        body: msg.body,
+        timestamp: msg.timestamp * 1000, // Converter para milliseconds
+        fromMe: msg.fromMe,
+        type: msg.hasMedia ? 'document' : 'text', // Ajustado para tipo válido
+        ack: msg.ackName === 'READ' ? 'READ' : 
+             msg.ackName === 'DELIVERED' ? 'DELIVERED' : 
+             msg.ackName === 'SENT' ? 'SENT' : 'PENDING',
+        author: msg.participant || msg.from,
+        hasMedia: msg.hasMedia,
+      }));
+      
+      return { ...response, data: messages };
+    }
+    
+    return response as WAHAResponse<Message[]>;
   }
 
   // Send text message

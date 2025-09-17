@@ -30,8 +30,11 @@ export const ChatSidebar = ({
 
   const formatLastMessageTime = (timestamp: number) => {
     try {
-      return formatDistanceToNow(new Date(timestamp), { addSuffix: true });
-    } catch {
+      // Se timestamp estiver em segundos, converter para ms
+      const date = new Date(timestamp < 10000000000 ? timestamp * 1000 : timestamp);
+      return formatDistanceToNow(date, { addSuffix: true });
+    } catch (error) {
+      console.error('Error formatting date:', error, timestamp);
       return '';
     }
   };
