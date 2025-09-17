@@ -16,28 +16,59 @@ interface ChatAreaProps {
   sidebarOpen: boolean;
 }
 
-export const ChatArea = ({ 
-  activeChat, 
-  messages, 
-  onSendMessage, 
+export const ChatArea = ({
+  activeChat,
+  messages,
+  onSendMessage,
   onToggleSidebar,
-  sidebarOpen 
+  sidebarOpen
 }: ChatAreaProps) => {
   const [sendingMessage, setSendingMessage] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
 
   const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior, block: 'end' });
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (shouldAutoScroll) {
+      scrollToBottom();
+    }
+  }, [messages, shouldAutoScroll]);
 
   useEffect(() => {
-    if (activeChat) {
-      scrollToBottom('auto');
+    if (!activeChat) {
+      return;
     }
+
+    setShouldAutoScroll(true);
+    scrollToBottom('auto');
+
+    const container = messagesContainerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const handleScroll = () => {
+      const isAtBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight < 50;
+
+      setShouldAutoScroll(prev => {
+        if (prev !== isAtBottom) {
+          return isAtBottom;
+        }
+        return prev;
+      });
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    handleScroll();
+
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+    };
   }, [activeChat?.id]);
 
   const handleSendMessage = async (text: string) => {
@@ -126,7 +157,10 @@ export const ChatArea = ({
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-chat-background">
+      <div
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto p-4 space-y-2 bg-chat-background"
+      >
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full text-muted-foreground">
             <p>No messages yet. Start the conversation!</p>
