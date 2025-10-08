@@ -40,6 +40,35 @@ export interface Message {
   caption?: string;
 }
 
+export interface WAHARawLastMessage {
+  id?: string;
+  body?: string;
+  timestamp: number;
+  fromMe: boolean;
+  hasMedia?: boolean;
+  ack?: number;
+  ackName?: string;
+}
+
+export interface WAHARawChat {
+  id: string;
+  name: string | null;
+  picture?: string;
+  avatar?: string;
+  lastMessage?: WAHARawLastMessage;
+}
+
+export interface WAHARawMessage {
+  id: string;
+  body?: string;
+  timestamp: number;
+  fromMe: boolean;
+  hasMedia?: boolean;
+  ackName?: 'READ' | 'DELIVERED' | 'SENT' | string;
+  participant?: string;
+  from?: string;
+}
+
 export interface SendTextRequest {
   chatId: string;
   text: string;
@@ -55,16 +84,13 @@ export interface WAHAResponse<T> {
   status?: number;
 }
 
-export interface WebhookEvent {
+export interface WebhookEvent<T = unknown> {
   event: 'message' | 'message.ack' | 'session.status' | 'chat.archive' | 'chat.unarchive';
   session: string;
-  payload: any;
+  payload: T;
 }
 
-export interface MessageEvent extends WebhookEvent {
-  event: 'message';
-  payload: Message;
-}
+export type MessageEvent = WebhookEvent<Message> & { event: 'message' };
 
 export interface SessionStatus {
   name: string;
