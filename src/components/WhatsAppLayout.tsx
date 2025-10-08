@@ -10,10 +10,14 @@ export const WhatsAppLayout = () => {
 
   // Set up webhook receiver for demo purposes
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     window.wahaWebhookReceived = (message) => {
       wahaState.addMessage(message);
     };
-    
+
     return () => {
       delete window.wahaWebhookReceived;
     };

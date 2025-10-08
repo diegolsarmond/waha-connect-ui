@@ -1,4 +1,5 @@
 import { Copy, ExternalLink, Info } from 'lucide-react';
+import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,11 +7,19 @@ import { useToast } from '@/hooks/use-toast';
 
 export const WebhookInfo = () => {
   const { toast } = useToast();
-  
-  const webhookUrl = `${window.location.origin}/api/webhook/waha`;
+
+  const webhookUrl = useMemo(() => {
+    if (typeof window === 'undefined') {
+      return '';
+    }
+
+    return `${window.location.origin}/api/webhook/waha`;
+  }, []);
   
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
+    if (navigator?.clipboard) {
+      navigator.clipboard.writeText(text);
+    }
     toast({
       title: 'Copied!',
       description: 'Webhook URL copied to clipboard',
