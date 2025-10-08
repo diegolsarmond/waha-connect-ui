@@ -15,16 +15,17 @@ interface ChatSidebarProps {
   onRefresh: () => void;
 }
 
-export const ChatSidebar = ({ 
-  chats, 
-  activeChatId, 
-  onSelectChat, 
-  loading, 
-  onRefresh 
+export const ChatSidebar = ({
+  chats,
+  activeChatId,
+  onSelectChat,
+  loading,
+  onRefresh
 }: ChatSidebarProps) => {
+  const safeChats = Array.isArray(chats) ? chats : [];
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredChats = chats.filter(chat =>
+  const filteredChats = safeChats.filter(chat =>
     chat.name && chat.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
