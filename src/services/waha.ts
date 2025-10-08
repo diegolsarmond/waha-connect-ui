@@ -1,4 +1,13 @@
-import { WAHAConfig, ChatOverview, Message, SendTextRequest, WAHAResponse, SessionStatus } from '@/types/waha';
+import {
+  WAHAConfig,
+  ChatOverview,
+  Message,
+  SendTextRequest,
+  WAHAResponse,
+  SessionStatus,
+  WAHARawChat,
+  WAHARawMessage,
+} from '@/types/waha';
 
 class WAHAService {
   private config: WAHAConfig;
@@ -55,24 +64,24 @@ class WAHAService {
       offset: offset.toString(),
     });
     
-    const response = await this.makeRequest<any[]>(`/api/${this.config.session}/chats/overview?${params}`);
-    
+    const response = await this.makeRequest<WAHARawChat[]>(`/api/${this.config.session}/chats/overview?${params}`);
+
     if (response.data) {
       console.log('📊 Raw chats data:', response.data.length, 'chats');
-      
+
       // Filtrar e mapear os chats válidos
       const validChats = response.data
-        .filter((chat: any) => {
+        .filter((chat: WAHARawChat) => {
           // Filtrar chats inválidos como status@broadcast
-          const isValid = chat.id && 
-                         chat.id !== 'status@broadcast' && 
+          const isValid = chat.id &&
+                         chat.id !== 'status@broadcast' &&
                          chat.name !== null;
           if (!isValid) {
             console.log('🚫 Chat filtrado:', chat.id, chat.name);
           }
           return isValid;
         })
-        .map((chat: any): ChatOverview => {
+        .map((chat: WAHARawChat): ChatOverview => {
           console.log('🔄 Processando chat:', chat.name, chat.id);
           return {
             id: chat.id,
@@ -114,18 +123,18 @@ class WAHAService {
       downloadMedia: (options.downloadMedia || false).toString(),
     });
     
-    const response = await this.makeRequest<any[]>(`/api/${this.config.session}/chats/${chatId}/messages?${params}`);
-    
+    const response = await this.makeRequest<WAHARawMessage[]>(`/api/${this.config.session}/chats/${chatId}/messages?${params}`);
+
     if (response.data) {
-      const messages = response.data.map((msg: any): Message => ({
+      const messages = response.data.map((msg: WAHARawMessage): Message => ({
         id: msg.id,
         chatId: chatId,
         body: msg.body,
         timestamp: msg.timestamp * 1000, // Converter para milliseconds
         fromMe: msg.fromMe,
         type: msg.hasMedia ? 'document' : 'text', // Ajustado para tipo válido
-        ack: msg.ackName === 'READ' ? 'READ' : 
-             msg.ackName === 'DELIVERED' ? 'DELIVERED' : 
+        ack: msg.ackName === 'READ' ? 'READ' :
+             msg.ackName === 'DELIVERED' ? 'DELIVERED' :
              msg.ackName === 'SENT' ? 'SENT' : 'PENDING',
         author: msg.participant || msg.from,
         hasMedia: msg.hasMedia,
@@ -162,7 +171,7 @@ class WAHAService {
   }
 
   // Get chat info
-  async getChatInfo(chatId: string): Promise<WAHAResponse<any>> {
+  async getChatInfo(chatId: string): Promise<WAHAResponse<unknown>> {
     return this.makeRequest(`/api/${this.config.session}/chats/${chatId}`);
   }
 
