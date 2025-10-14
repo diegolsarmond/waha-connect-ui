@@ -8,8 +8,17 @@ const tsxMimeFix = (): Plugin => ({
   configureServer(server) {
     server.middlewares.use((req, res, next) => {
       const pathname = req.url?.split("?")[0];
-      if (pathname?.endsWith(".tsx")) {
-        res.setHeader("Content-Type", "application/javascript");
+      if (pathname && (/\.tsx$/.test(pathname) || /\.ts$/.test(pathname))) {
+        res.setHeader("Content-Type", "text/javascript");
+      }
+      next();
+    });
+  },
+  configurePreviewServer(server) {
+    server.middlewares.use((req, res, next) => {
+      const pathname = req.url?.split("?")[0];
+      if (pathname && (/\.tsx$/.test(pathname) || /\.ts$/.test(pathname))) {
+        res.setHeader("Content-Type", "text/javascript");
       }
       next();
     });
@@ -26,7 +35,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
-    mode === "development" && tsxMimeFix(),
+    tsxMimeFix(),
   ].filter(Boolean),
   resolve: {
     alias: {
