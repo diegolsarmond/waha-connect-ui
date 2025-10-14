@@ -7,7 +7,11 @@ const tsxMimeFix = (): Plugin => ({
   name: "tsx-mime-fix",
   configureServer(server) {
     server.middlewares.use((req, res, next) => {
-      if (req.url?.endsWith(".tsx")) {
+      const pathname = req.url
+        ? new URL(req.url, "http://localhost").pathname
+        : undefined;
+
+      if (pathname?.endsWith(".tsx")) {
         res.setHeader("Content-Type", "application/javascript");
       }
       next();
