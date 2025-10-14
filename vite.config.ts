@@ -1,7 +1,8 @@
-import { defineConfig, Plugin } from "vite";
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
+
 
 const tsxMimeFix = (): Plugin => ({
   name: "tsx-mime-fix",
@@ -31,10 +32,21 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    mimeTypes: {
+      ".ts": "text/javascript",
+      ".tsx": "text/javascript",
+    },
+  },
+  preview: {
+    mimeTypes: {
+      ".ts": "text/javascript",
+      ".tsx": "text/javascript",
+    },
   },
   plugins: [
     react(),
     mode === "development" && componentTagger(),
+
     tsxMimeFix(),
   ].filter(Boolean),
   resolve: {
