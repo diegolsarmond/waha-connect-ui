@@ -13,6 +13,7 @@ export const useWAHA = () => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const intervalRef = useRef<NodeJS.Timeout>();
+  const messagesIntervalRef = useRef<NodeJS.Timeout>();
 
   // Load chats
   const loadChats = useCallback(async () => {
@@ -183,16 +184,41 @@ export const useWAHA = () => {
   useEffect(() => {
     loadChats();
     checkSessionStatus();
-    
+
     // Set up periodic refresh for session status
     intervalRef.current = setInterval(checkSessionStatus, 30000); // Reduzido para 30 segundos
-    
+
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
     };
   }, [loadChats, checkSessionStatus]);
+
+  useEffect(() => {
+    if (messagesIntervalRef.current) {
+      clearInterval(messagesIntervalRef.current);
+      messagesIntervalRef.current = undefined;
+    }
+
+    if (!activeChatId) {
+      return;
+    }
+
+    const fetchMessages = () => {
+      loadMessages(activeChatId);
+    };
+
+    fetchMessages();
+    messagesIntervalRef.current = setInterval(fetchMessages, 5000);
+
+    return () => {
+      if (messagesIntervalRef.current) {
+        clearInterval(messagesIntervalRef.current);
+        messagesIntervalRef.current = undefined;
+      }
+    };
+  }, [activeChatId, loadMessages]);
 
   const activeChat = activeChatId ? chats.find(chat => chat.id === activeChatId) : null;
   const activeChatMessages = activeChatId ? messages[activeChatId] || [] : [];

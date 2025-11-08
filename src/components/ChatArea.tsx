@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Menu, Phone, Video, MoreVertical, Search } from 'lucide-react';
+import { ArrowLeft, Menu, Phone, Video, MoreVertical, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ChatOverview, Message } from '@/types/waha';
@@ -14,6 +14,7 @@ interface ChatAreaProps {
   onSendMessage: (chatId: string, text: string) => Promise<void>;
   onToggleSidebar: () => void;
   sidebarOpen: boolean;
+  isMobile: boolean;
 }
 
 export const ChatArea = ({
@@ -21,7 +22,8 @@ export const ChatArea = ({
   messages,
   onSendMessage,
   onToggleSidebar,
-  sidebarOpen
+  sidebarOpen,
+  isMobile
 }: ChatAreaProps) => {
   const [sendingMessage, setSendingMessage] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -100,15 +102,17 @@ export const ChatArea = ({
       {/* Chat Header */}
       <div className="flex items-center justify-between p-4 bg-sidebar border-b border-border shadow-soft">
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onToggleSidebar}
-            className="text-sidebar-foreground hover:bg-sidebar-hover lg:hidden"
-          >
-            <Menu className="w-5 h-5" />
-          </Button>
-          
+          {isMobile && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onToggleSidebar}
+              className="text-sidebar-foreground hover:bg-sidebar-hover lg:hidden"
+            >
+              {sidebarOpen ? <Menu className="w-5 h-5" /> : <ArrowLeft className="w-5 h-5" />}
+            </Button>
+          )}
+
           <Avatar className="w-10 h-10">
             <AvatarImage src={activeChat.avatar} alt={activeChat.name} />
             <AvatarFallback className="bg-whatsapp-light text-whatsapp-dark font-semibold">
@@ -159,7 +163,7 @@ export const ChatArea = ({
       {/* Messages Area */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-2 bg-chat-background"
+        className="flex-1 overflow-y-auto p-4 space-y-2 bg-chat-background scroll-smooth"
       >
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full text-muted-foreground">
@@ -181,7 +185,7 @@ export const ChatArea = ({
       </div>
 
       {/* Message Input */}
-      <div className="p-4 bg-sidebar border-t border-border">
+      <div className="p-4 bg-sidebar border-t border-border sticky bottom-0 z-10">
         <MessageInput
           onSendMessage={handleSendMessage}
           disabled={sendingMessage}
